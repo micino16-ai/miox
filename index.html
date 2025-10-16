@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Missione Segreta — Gatto delle Tasse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Bungee&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-dark:#121c1f;
+  --panel-dark:#1e2a2f;
+  --accent-green:#25d366;
+  --text-light:#e1e1e1;
+  --muted:#a3b1b8;
+}
+body{
+  margin:0;
+  font-family:sans-serif;
+  background-color:var(--bg-dark);
+  color:var(--text-light);
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  overflow:hidden;
+  flex-direction:column;
+}
+button{cursor:pointer;}
+.notif{
+  width:300px;
+  max-width:90vw;
+  background-color:var(--panel-dark);
+  color:var(--text-light);
+  padding:14px 16px;
+  border-radius:12px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  box-shadow:0 5px 20px rgba(0,0,0,0.4);
+  gap:10px;
+  position:relative;
+  z-index:10;
+}
+.notif .top-row{
+  display:flex;
+  align-items:center;
+  width:100%;
+  gap:10px;
+}
+.notif .dot{width:40px;height:40px;border-radius:50%;background-color:var(--accent-green);display:flex;align-items:center;justify-content:center;font-weight:bold;color:#001200;}
+.notif .txt{flex:1;}
+.notif .txt .title{font-family:'Fredoka One', cursive; font-weight:bold;}
+.action-buttons{
+  margin-top:10px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  width:100%;
+  opacity:0;
+  pointer-events:none;
+  transition: opacity 0.6s ease;
+}
+.action-buttons.show{
+  opacity:1;
+  pointer-events:auto;
+}
+.action-buttons button{
+  font-family:sans-serif;
+  font-weight:bold;
+  background:transparent;
+  color:var(--text-light);
+  border:none;
+  padding:8px;
+  border-radius:8px;
+}
+.action-buttons button:hover{background:rgba(255,255,255,0.05);}
+.main{
+  width:360px; max-width:95vw; height:0px;
+  background-color:var(--panel-dark);
+  border-radius:12px;
+  display:flex; flex-direction:column; overflow:hidden;
+  box-shadow:0 10px 50px rgba(0,0,0,0.6);
+  transition: all 0.8s ease;
+  display:none;
+  pointer-events:none;
+}
+.main.show{
+  pointer-events:auto;
+}
+.chat-header{display:flex; align-items:center; padding:10px; border-bottom:1px solid rgba(255,255,255,0.1);}
+.avatar{width:40px;height:40px;border-radius:50%;background-color:var(--accent-green);display:flex;align-items:center;justify-content:center;font-weight:bold;color:#001200;margin-right:10px; font-family:'Fredoka One', cursive;}
+.chat-body{flex:1; padding:12px; display:flex; flex-direction:column; gap:10px; overflow-y:auto; font-family:sans-serif;}
+.bubble{max-width:70%; padding:10px 14px; border-radius:12px; word-break:break-word;}
+.bubble.me{background-color:#056162;color:#dfffd6; align-self:flex-end; border-bottom-right-radius:4px;}
+.bubble.cat{background-color:#1f2c30; color:var(--text-light); align-self:flex-start; border-bottom-left-radius:4px; border:1px solid rgba(255,255,255,0.05);}
+.options{display:none; flex-direction:column; padding:10px; gap:8px; border-top:1px solid rgba(255,255,255,0.05);}
+.opt-btn{padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); background:transparent; color:var(--text-light); cursor:pointer; text-align:left; font-family:sans-serif;}
+.opt-btn:hover{background:rgba(255,255,255,0.05);}
+.typing{display:flex;gap:5px;align-items:center;padding:8px 12px;border-radius:12px;background:rgba(255,255,255,0.05);width:60px;}
+.dot-anim{width:8px;height:8px;background:var(--muted);border-radius:50%;opacity:0.6;animation:blink 1s infinite;}
+.dot-anim:nth-child(2){animation-delay:0.12s}
+.dot-anim:nth-child(3){animation-delay:0.24s}
+@keyframes blink{0%{opacity:0.25}50%{opacity:1}100%{opacity:0.25}}
+.status{font-family:'Share Tech Mono', monospace; font-size:12px; color:var(--muted);}
+.input-bar{
+  display:none;
+  padding:10px;
+  background:rgba(255,255,255,0.05);
+  border-radius:12px;
+  color:var(--muted);
+  cursor:pointer;
+  text-align:left;
+  font-family:sans-serif;
+}
+#startMission{
+  font-family:'Bungee', cursive;
+  font-size:36px;
+  color:var(--accent-green);
+  cursor:pointer;
+  text-align:center;
+  display:none;
+  opacity:0;
+  transition: opacity 0.8s ease;
+  position:relative;
+  z-index:1000;
+  pointer-events:auto;
+}
+#note{
+  display:none;
+  background-color:white;
+  color:black;
+  width:300px;
+  max-width:90vw;
+  padding:20px;
+  border-radius:12px;
+  text-align:center;
+  font-family:sans-serif;
+  position:relative;
+  top:0;
+  box-shadow:0 5px 20px rgba(0,0,0,0.4);
+}
+.fail-screen{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background-color:black;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  color:red;
+  font-family:sans-serif;
+  font-size:28px;
+  text-align:center;
+}
+input{box-sizing:border-box;}
+</style>
+</head>
+<body>
+
+<div class="notif" id="notif">
+  <div class="top-row">
+    <div class="dot">G</div>
+    <div class="txt">
+      <div class="title">💬 Gatto delle Tasse 😼</div>
+      <div class="sub">Hai un nuovo messaggio</div>
+    </div>
+  </div>
+  <div class="action-buttons" id="actionButtons">
+    <button onclick="startChat()">Leggi Messaggio</button>
+    <button onclick="ignoreMsg()">Ignora Messaggio</button>
+  </div>
+</div>
+
+<div class="main" id="mainPanel">
+  <div class="chat-header">
+    <div class="avatar">G</div>
+    <div class="meta">
+      <div class="name">Gatto delle Tasse 😼</div>
+      <div class="status">online</div>
+    </div>
+  </div>
+  <div class="chat-body" id="chatBody"></div>
+  <div class="input-bar" id="inputBar" onclick="showOptions()">Scrivi un messaggio...</div>
+  <div class="options" id="optionsArea">
+    <button class="opt-btn" onclick="sendChoice(1)">Ma io le tasse le ho pagate regolarmente, ridammi il mio regalo!</button>
+    <button class="opt-btn" onclick="sendChoice(2)">Non è giusto, questo è un ricatto felino. Restituiscilo ora!</button>
+    <button class="opt-btn" onclick="sendChoice(3)">Lo troverò!</button>
+  </div>
+</div>
+
+<div id="startMission" onclick="showNote()">INIZIA MISSIONE</div>
+
+<div id="note">
+  <p>Come te la cavi con i cruciverba? 😏</p>
+  <button id="solveCrossword" onclick="showCrossword()">Risolvi cruciverba</button>
+</div>
+
+<script>
+const notif = document.getElementById('notif');
+const actionButtons = document.getElementById('actionButtons');
+const main = document.getElementById('mainPanel');
+const chatBody = document.getElementById('chatBody');
+const inputBar = document.getElementById('inputBar');
+const optionsArea = document.getElementById('optionsArea');
+const startMission = document.getElementById('startMission');
+const note = document.getElementById('note');
+
+const gattoMessage = `Oh oh...
+Il tuo regalo è finito sotto sequestro felino da parte del temutissimo Gatto delle Tasse! 😼
+Pare abbia fiutato qualche irregolarità… e ora è sulle tue tracce!
+Ti conviene muoverti in fretta e non farti trovare: il Gatto delle Tasse non conosce pietà.
+Per riavere il tuo regalo dovrai affrontare una serie di missioni top secret.
+Segui gli indizi, sii astuto e guardati le spalle… il Gatto potrebbe nascondersi ovunque! 🕵️‍♂️🐈‍⬛`;
+
+notif.addEventListener('click', ()=>{
+  actionButtons.classList.add('show');
+});
+function ignoreMsg(){
+  notif.style.display='none';
+  actionButtons.style.display='none';
+  const failScreen = document.createElement('div');
+  failScreen.className='fail-screen';
+  failScreen.innerHTML='❌ MISSIONE FALLITA, IL GATTO DELLE TASSE HA VINTO! ❌';
+  document.body.appendChild(failScreen);
+}
+
+function startChat(){
+  notif.style.display='none';
+  actionButtons.style.display='none';
+  main.style.display='flex';
+  main.classList.add('show');
+  main.style.height='0px';
+  setTimeout(()=>{main.style.height='500px';},50);
+  appendCatMessage(gattoMessage,()=>{
+    inputBar.style.display='block';
+  });
+}
+
+function appendCatMessage(msg, callback){
+  const bubble = document.createElement('div');
+  bubble.className='bubble cat';
+  bubble.textContent = msg;
+  chatBody.appendChild(bubble);
+  chatBody.scrollTop = chatBody.scrollHeight;
+  if(callback) setTimeout(callback,500);
+}
+
+function showOptions(){
+  inputBar.style.display='none';
+  optionsArea.style.display='flex';
+}
+
+function sendChoice(n){
+  optionsArea.style.display='none';
+  const choices = {
+    1:'Ma io le tasse le ho pagate regolarmente, ridammi il mio regalo!',
+    2:'Non è giusto, questo è un ricatto felino. Restituiscilo ora!',
+    3:'Lo troverò!'
+  };
+  const userBubble = document.createElement('div');
+  userBubble.className='bubble me';
+  userBubble.textContent = choices[n];
+  chatBody.appendChild(userBubble);
+  chatBody.scrollTop = chatBody.scrollHeight;
+
+  const typing = document.createElement('div');
+  typing.className='typing';
+  typing.innerHTML='<div class="dot-anim"></div><div class="dot-anim"></div><div class="dot-anim"></div>';
+  chatBody.appendChild(typing);
+  chatBody.scrollTop = chatBody.scrollHeight;
+
+  setTimeout(()=>{
+    typing.remove();
+    appendCatMessage('Cercalo.', ()=>{
+      setTimeout(()=>{
+        shutDownChat();
+      }, 2000);
+    });
+  },1500);
+}
+
+function shutDownChat(){
+  main.style.height='0px';
+  main.style.pointerEvents='none';
+  setTimeout(()=>{
+    main.style.display='none';
+    startMission.style.display='block';
+    setTimeout(()=>{startMission.style.opacity='1';},50);
+  },800);
+}
+
+function showNote(){
+  startMission.style.display='none';
+  note.style.display='block';
+}
+
+// === Cruciverba interattivo completo ===
+function showCrossword() {
+  note.style.display = 'none';
+  const crosswordContainer = document.createElement('div');
+  crosswordContainer.id = 'crosswordContainer';
+  crosswordContainer.style.display = 'flex';
+  crosswordContainer.style.flexDirection = 'column';
+  crosswordContainer.style.alignItems = 'center';
+  crosswordContainer.style.justifyContent = 'center';
+  crosswordContainer.style.backgroundColor = '#000';
+  crosswordContainer.style.padding = '20px';
+  crosswordContainer.style.borderRadius = '12px';
+  crosswordContainer.style.width = '90vw';
+  crosswordContainer.style.maxWidth = '400px';
+  crosswordContainer.style.margin = '0 auto';
+  crosswordContainer.style.gap = '12px';
+  
+  const definitions = [
+    { def: "Ne bevi almeno 10 al giorno", len: 5, red: 0 },
+    { def: "Te lo dico sempre quando non ho la minima intenzione di aiutarti", len: 10, red: 2 },
+    { def: "Ti costringo sempre a mangiarlo", len: 4, red: 1 },
+    { def: "La tua fobia", len: 11, red: 3 },
+    { def: "Li mangi sempre anche se ti fanno stare male", len: 8, red: 3 },
+    { def: "Il modo in cui prendi il caffè", len: 5, red: 3 },
+    { def: "Ti chiamo sempre così quando fai qualcosa 'alla vecchia maniera'", len: 6, red: 2 },
+    { def: "Ne sei fanatico (e ne avresti bisogno 😌)", len: 8, red: 4 },
+    { def: "La mia materia 'preferita'", len: 5, red: 2 },
+    { def: "Lo diciamo spesso io, Giglio e Gemma", len: 4, red: 2 }
+  ];
+  
+  const solutions = [
+    ["C","A","F","F","E"], 
+    ["A","R","R","A","N","G","I","A","T","I"],
+    ["P","O","K","E"],
+    ["A","R","A","C","N","O","F","O","B","I","A"],
+    ["P","E","P","E","R","O","N","I"],
+    ["A","M","A","R","O"],
+    ["B","O","O","M","E","R"],
+    ["P","A","L","E","S","T","R","A"],
+    ["R","U","S","S","O"],
+    ["M","I","A","O"]
+  ];
+  
+  definitions.forEach((item, idx) => {
+    const block = document.createElement('div');
+    block.style.display = 'flex';
+    block.style.flexDirection = 'column';
+    block.style.alignItems = 'center';
+    block.style.gap = '6px';
+    const def = document.createElement('div');
+    def.textContent = item.def;
+    def.style.color = 'white';
+    def.style.fontSize = '14px';
+    def.style.textAlign = 'center';
+    const row = document.createElement('div');
+    row.style.display = 'flex';
+    row.style.gap = '4px';
+    for(let i=0;i<item.len;i++){
+      const input = document.createElement('input');
+      input.type='text';
+      input.maxLength=1;
+      input.style.width='25px';
+      input.style.height='25px';
+      input.style.textAlign='center';
+      input.style.backgroundColor = (i===item.red)? 'red' : '#000';
+      input.style.color = '#fff';
+      input.style.border='1px solid #fff';
+      input.style.fontWeight='bold';
+      input.style.fontSize='16px';
+      input.addEventListener('input',(e)=>{
+        if(i<item.len-1 && e.target.value) row.children[i+1].focus();
+      });
+      row.appendChild(input);
+    }
+    block.appendChild(def);
+    block.appendChild(row);
+    crosswordContainer.appendChild(block);
+  });
+
+  const feedbackDiv = document.createElement('div');
+  feedbackDiv.style.color='#fff';
+  feedbackDiv.style.fontWeight='bold';
+  feedbackDiv.style.marginTop='10px';
+
+  const verifyBtn = document.createElement('button');
+  verifyBtn.textContent='Verifica cruciverba';
+  verifyBtn.style.marginTop='20px';
+  verifyBtn.style.padding='10px 16px';
+  verifyBtn.style.border='none';
+  verifyBtn.style.borderRadius='8px';
+  verifyBtn.style.backgroundColor='#25d366';
+  verifyBtn.style.color='#000';
+  verifyBtn.style.fontWeight='bold';
+  verifyBtn.style.cursor='pointer';
+
+  verifyBtn.addEventListener('click',()=>{
+    const allInputs = crosswordContainer.querySelectorAll('input');
+    let correct=true;
+    let index=0;
+    solutions.forEach(row=>{
+      row.forEach(letter=>{
+        if(allInputs[index].value.toUpperCase()!==letter){
+          correct=false;
+        }
+        index++;
+      });
+    });
+    if(correct){
+      document.body.innerHTML='';
+      const newScreen=document.createElement('div');
+      newScreen.style.display='flex';
+      newScreen.style.justifyContent='center';
+      newScreen.style.alignItems='center';
+      newScreen.style.height='100vh';
+      newScreen.style.backgroundColor='#000';
+      newScreen.style.color='#25d366';
+      newScreen.style.fontFamily='sans-serif';
+      newScreen.style.fontSize='18px';
+      newScreen.style.textAlign='center';
+      newScreen.style.padding='20px';
+      newScreen.innerHTML=`🎉 Complimenti! Hai trovato la prima tappa!<br><br>
+      Non c'è niente di meglio che iniziare la missione con un caffè e quattro chiacchiere con gli amici.<br><br>
+      Dirigiti lì per cercare il secondo indizio.<br><br>
+      PS: ho dovuto nasconderlo da occhi indiscreti, l'ho affidato allo scheletro che c'è sulle scale, mi raccomando...`;
+      document.body.appendChild(newScreen);
+    } else {
+      feedbackDiv.textContent='❌ Una o più risposte sono errate. Ritenta!';
+    }
+  });
+
+  crosswordContainer.appendChild(verifyBtn);
+  crosswordContainer.appendChild(feedbackDiv);
+  document.body.appendChild(crosswordContainer);
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>
